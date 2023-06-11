@@ -1,0 +1,8 @@
+@local=http://localhost:3001/api/auth
+
+POST {{local}}/cartBuyButton 
+Content-Type: application/json
+
+{
+    "cart": ["home","house","apartment"]
+}
