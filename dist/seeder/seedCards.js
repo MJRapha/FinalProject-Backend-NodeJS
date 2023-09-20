@@ -7,21 +7,21 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
         step((generator = generator.apply(thisArg, _arguments || [])).next());
     });
 };
-const isAdmin = (req, res, next) => __awaiter(void 0, void 0, void 0, function* () {
-    const userId = req.userId;
-    try {
-        /* const user = await User.findById(userId)
-        const roles = await User.find({ _id: { $in: user.roles } });
-        for (let role of roles) {
-            if (role.name === "admin") {
-                return next();
-            }
-        } */
-        return res.status(403).json({ message: "Requires Admin Role" });
-    }
-    catch (e) {
-        return res.status(500).json({ message: "Requires Admin Role", error: e });
-    }
-    //find the user role => if admin =>
+import cardsJson from "../json/cards.json" assert { type: 'json' };
+import { connectDB } from "../db/connect.js";
+import Card from "../db/models/card.js";
+connectDB().catch((e) => {
+    console.log(e);
 });
-export { isAdmin };
+export const insertMany = () => __awaiter(void 0, void 0, void 0, function* () {
+    try {
+        yield Card.create(cardsJson.cards);
+        console.log('Data successfully imported');
+    }
+    catch (error) {
+        console.log(error);
+    }
+    finally {
+        console.log('seeder insert on action');
+    }
+});

@@ -7,18 +7,16 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
         step((generator = generator.apply(thisArg, _arguments || [])).next());
     });
 };
-import { Role } from "../db/models/role.js";
-import { User } from "../db/models/user.js";
 const isModerator = (req, res, next) => __awaiter(void 0, void 0, void 0, function* () {
     const userId = req.userId;
     try {
-        const user = yield User.findById(userId);
-        const roles = yield Role.find({ _id: { $in: user.roles } });
+        /* const user = await User.findById(userId)
+        const roles = await Role.find({ _id: { $in: user.roles } });
         for (let role of roles) {
             if (role.name === "moderator") {
                 return next();
             }
-        }
+        } */
         return res.status(403).json({ message: "Requires Admin Role" });
     }
     catch (e) {

@@ -10,25 +10,23 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
 import { Router } from "express";
 import _ from "underscore";
 import jwt from 'jsonwebtoken';
+import bcrypt from "bcryptjs";
 import { User } from "../db/models/user.js";
 import { validateSignUp } from "../middleware/verifySignupBody.js";
 import { alreadyExists } from "../middleware/alreadyExists.js";
 import authConfig from '../db/config/auth.config.js';
-import bcrypt from "bcryptjs";
 import { validateSignIn } from "../middleware/verifySignInBody.js";
-import { Role } from "../db/models/role.js";
 import { CheckOut } from "../db/models/CheckOut.js";
 import { validateToken } from "../middleware/validateToken.js";
 const router = Router();
 //api/auth/signup
 router.post("/signup", validateSignUp, alreadyExists, (req, res) => __awaiter(void 0, void 0, void 0, function* () {
-    const body = _.pick(req.body, "username", "email", "password");
-    //12 rounds takes more
-    body.password = yield bcrypt.hash(body.password, 12);
-    const user = new User(body);
-    //save the password hash to db:
     try {
-        user.roles = [yield (yield Role.findOne({ name: 'user' }))._id];
+        const body = _.pick(req.body, "username", "email", "password");
+        //12 rounds takes more
+        body.password = yield bcrypt.hash(body.password, 12);
+        const user = new User(body);
+        //save the password hash to db:
         yield user.save();
         return res.json({ message: "user saved", id: user._id });
     }
@@ -40,7 +38,7 @@ router.post("/signin", validateSignIn, (req, res) => __awaiter(void 0, void 0, v
     //email and password:
     try {
         //SELECT * FROM user JOIN Roles ON ...
-        const user = yield User.findOne({ email: req.body.email }).populate("roles");
+        const user = yield User.findOne({ email: req.body.email });
         if (!user) {
             return res.status(401).json({ message: "No Such User" });
         }
@@ -50,20 +48,16 @@ router.post("/signin", validateSignIn, (req, res) => __awaiter(void 0, void 0, v
         if (!isPasswordValid) {
             return res.status(401).json({ message: "Invalid Credentials" });
         }
-        const token = jwt.sign({ email: user.email }, authConfig.secret, {
+        const token = jwt.sign({ _id: user._id, email: user.email, role: user.role }, authConfig.secret, {
             expiresIn: "30d",
         });
-        const authorities = [];
-        for (let i = 0; i < user.roles.length; i++) {
-            authorities.push(`ROLE_` + user.roles[i].name.toUpperCase());
-        }
         return res
             .status(200)
             .json({
             id: user.id,
             username: user.username,
             email: user.email,
-            roles: authorities,
+            role: user.role,
             accessToken: token
         });
     }
